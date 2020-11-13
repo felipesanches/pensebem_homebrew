@@ -107,20 +107,66 @@ void update_display(){
     }
 }
 
-#define k 15
+
+uint8_t font[] = {
+    /* 0: */ 0b11011101, /* 1: */ 0b01010000, /* 2: */ 0b11101100, /* 3: */ 0b11111000,
+    /* 4: */ 0b01110001, /* 5: */ 0b10111001, /* 6: */ 0b10111101, /* 7: */ 0b11010000,
+    /* 8: */ 0b11111101, /* 9: */ 0b11111001,
+    /* A: */ 0b11110101, /* B: */ 0b00111101, /* C: */ 0b10001101, /* D: */ 0b00000000,
+    /* E: */ 0b10101101, /* F: */ 0b00000000, /* G: */ 0b10011101, /* H: */ 0b01110101,
+    /* I: */ 0b00000100, /* J: */ 0b11011100, /* K: ?! */ 0b00000000, /* L: */ 0b01010000,
+    /* M: */ 0b11010101, /* N: */ 0b00110100, /* O: */ 0b00000000, /* P: */ 0b11100101,
+    /* Q: */ 0b00000000, /* R: */ 0b00100100, /* S: */ 0b10111001, /* T: */ 0b00000000,
+    /* U: */ 0b01011101, /* V: */ 0b01011101, /* W: */ 0b00000000, /* X: */ 0b00000000,
+    /* Y: */ 0b01111001, /* Z: */ 0b00000000,
+    /* : */ 0b00000000, /* : */ 0b00000000, /* : */ 0b00000000, /* : */ 0b00000000,
+};
+
+void print_char(uint8_t position, const char c){
+    if (position > 7) return;
+    if (position > 2) position++; // skip the extra segments of the special 14seg digit
+    position = 7 - position;
+    if (c >= '0' && c <= '9') { display[position] = font[c - '0']; return; }
+    if (c >= 'A' && c <= 'Z') { display[position] = font[c - 'A' + 10]; return; }
+    if (c >= 'a' && c <= 'z') { display[position] = font[c - 'a' + 10]; return; }
+
+    // otherwise, print a blank since we do not have a glyph for this character yet in the font.
+    display[position] = 0x00; return;
+}
+
+void print_string(uint8_t position, const char* str){
+    while (position < 7 && *str)
+        print_char(position++, *str++);
+}
+
 uint16_t count=0;
+uint16_t x=0;
+void scroll_text(const char* str){
+    count++;
+    if (count > 50){
+        count=0;
+        x++;
+    }
+    print_string(0, &str[x]);
+}
+
+#define k 15
+void wave_animation(){
+    count++;
+    if (count > 8*k) count=0;
+
+    for (uint8_t digit=0; digit<8; digit++){
+        display[digit] = (1<< ((digit+count/k)%8));
+    }
+}
+
 int main(){
     init_display();
 
     while (1){
         update_display();
-
-	count++;
-	if (count > 8*k) count=0;
-
-        for (uint8_t digit=0; digit<8; digit++){
-            display[digit] = (1<< ((digit+count/k)%8));
-        }
+//        scroll_text("123 happy hacking 1234567890");
+        wave_animation();
     }
     return 0;
 }
