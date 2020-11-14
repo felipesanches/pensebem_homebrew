@@ -1,4 +1,13 @@
 ######################################################
+# Altere estas variaveis de acordo com o seu setup:
+#
+PORT=/dev/ttyACM0
+MAME=~/mame/pensebem_64
+ROMPATH=~/ROM_DUMPS/FSanches/pensebem/homebrew/
+ICSP_PROGRAMMER=usbasp
+
+
+######################################################
 #Makefile For Atmel ATMega328p (Arduino) Processor
 #
 #This makefile assumes single source file, includes 
@@ -30,13 +39,15 @@ CFLAGS=-std=c99 -Wall -g -Os -mmcu=${MCU} -DF_CPU=${F_CPU} -D${STDLIB} -I. -I${I
 
 TARGET=demo
 SRCS=demo.c
-PORT=/dev/ttyACM0
 
-all:
+all: bin
+
+bin:
 	${CC} ${CFLAGS} -o ${TARGET}.bin ${SRCS}
-	${OBJCOPY} -j .text -j .data -O ihex ${TARGET}.bin ${TARGET}.hex
-	${OBJCOPY} -j .text -j .data -O binary ${TARGET}.bin /home/fsanches/ROM_DUMPS/FSanches/pensebem/homebrew/pbem2017/pensebem-2017.bin
-	# ~/mame/pensebem_64 -rp ~/ROM_DUMPS/FSanches/pensebem/homebrew/ pbem2017 -window
+
+run: bin
+	${OBJCOPY} -j .text -j .data -O binary ${TARGET}.bin $(ROMPATH)/pbem2017/pensebem-2017.bin
+	$(MAME) -rp $(ROMPATH) pbem2017 -window
 
 compile:
 	${CC} ${CFLAGS} -c ${SRCS}
@@ -47,7 +58,8 @@ link:
 elf:
 	${CC} ${CFLAGS} -c ${SRCS}
 	${CC} ${CFLAGS} -o ${TARGET}.elf ${TARGET}.o
-dump:
+objdump:
+	${OBJCOPY} -j .text -j .data -O ihex ${TARGET}.bin ${TARGET}.hex
 	${OBJ_DUMP} -h -S ${TARGET}.elf > ${TARGET}.lst
 
 
@@ -74,8 +86,8 @@ dump:
 #
 #Either one of the following works.
 
-flash:
-	avrdude -F -V -v -y -c arduino -p ${MCU} -P ${PORT} -b 115200 -U flash:w:${TARGET}.hex:i
+flash: bin
+	avrdude -F -p m168p -P $(PORT) -c $(ICSP_PROGRAMMER) -U flash:w:demo.bin
 
 clean:
 	rm -f *.bin *.hex
