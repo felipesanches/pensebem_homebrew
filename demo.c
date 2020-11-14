@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <util/delay.h>
 
 /* ---------------------------------------------------------------------
@@ -161,7 +162,14 @@ void wave_animation(){
 }
 
 void init_sound(){
-    // Configuração do TIMER1
+    // Configuração do TIMER0 (base de tempo para playback de música)
+    TIMSK0 = _BV(OCIE0A);  // Enable Interrupt TimerCounter0 Compare Match A (SIG_OUTPUT_COMPARE0A)
+    TCCR0A = _BV(WGM01);  // Mode = CTC
+    TCCR0B = _BV(CS02) | _BV(CS00);   // Clock/1024, 0.001024 seconds per tick
+    OCR0A = 244;          // 0.001024*244 ~= .25 SIG_OUTPUT_COMPARE0A will be triggered 4 times per second.
+    sei();         //enable interrupts
+
+    // Configuração do TIMER1 (gerador de frequencias das notas musicais)
     TCCR1A = (1 << COM1A0);	// Toggle OC1A on compare match
     TCCR1B = (1 << WGM12) | (1 << CS10);	// CTC mode, no prescaler
     DDRB |= 0b00000010;		//Set OC1A as an Output.
@@ -172,11 +180,16 @@ void set_freq(int f){
 }
 
 uint32_t time=0;
-float kkk = 5.0;
-void play_music(){
-    set_freq(4*880 + 2000*(-0.5 + 0.5*sin(time/kkk)));
+uint16_t notes[] = {
+    440, 880, 440, 550, 660, 770, 440, 300,
+    440, 880, 440, 550, 660, 770, 440, 300,
+    660, 920, 660, 550, 880, 770, 300, 380,
+    880, 1760, 880, 1100, 1320, 1540, 880, 600,
+};
+ISR (TIMER0_COMPA_vect)
+{
+    set_freq(notes[(time/3)%32]);
     time++;
-    kkk-=0.01;
 }
 
 int main(){
@@ -187,7 +200,6 @@ int main(){
         update_display();
 //        scroll_text("123 happy hacking 1234567890");
         wave_animation();
-        play_music();
     }
     return 0;
 }
