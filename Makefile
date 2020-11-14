@@ -36,7 +36,7 @@ all:
 	${CC} ${CFLAGS} -o ${TARGET}.bin ${SRCS}
 	${OBJCOPY} -j .text -j .data -O ihex ${TARGET}.bin ${TARGET}.hex
 	${OBJCOPY} -j .text -j .data -O binary ${TARGET}.bin /home/fsanches/ROM_DUMPS/FSanches/pensebem/homebrew/pbem2017/pensebem-2017.bin
-	~/mame/pensebem_64 -rp ~/ROM_DUMPS/FSanches/pensebem/homebrew/ pbem2017 -window
+	# ~/mame/pensebem_64 -rp ~/ROM_DUMPS/FSanches/pensebem/homebrew/ pbem2017 -window
 
 compile:
 	${CC} ${CFLAGS} -c ${SRCS}

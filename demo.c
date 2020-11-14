@@ -150,7 +150,7 @@ void scroll_text(const char* str){
     print_string(0, &str[x]);
 }
 
-#define k 15
+#define k 10
 void wave_animation(){
     count++;
     if (count > 8*k) count=0;
@@ -160,13 +160,34 @@ void wave_animation(){
     }
 }
 
+void init_sound(){
+    // Configuração do TIMER1
+    TCCR1A = (1 << COM1A0);	// Toggle OC1A on compare match
+    TCCR1B = (1 << WGM12) | (1 << CS10);	// CTC mode, no prescaler
+    DDRB |= 0b00000010;		//Set OC1A as an Output.
+}
+
+void set_freq(int f){
+    OCR1A = 16000000.0/f;	// carrega registrador de comparação: 16MHz/freq
+}
+
+uint32_t time=0;
+float kkk = 5.0;
+void play_music(){
+    set_freq(4*880 + 2000*(-0.5 + 0.5*sin(time/kkk)));
+    time++;
+    kkk-=0.01;
+}
+
 int main(){
     init_display();
+    init_sound();
 
     while (1){
         update_display();
 //        scroll_text("123 happy hacking 1234567890");
         wave_animation();
+        play_music();
     }
     return 0;
 }
