@@ -1,3 +1,6 @@
+// This code, written by Felipe Correa da Silva Sanches <juca@members.fsf.org>
+// is released to the Public Domain.
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
