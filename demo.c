@@ -188,7 +188,7 @@ uint16_t notes[] = {
 };
 ISR (TIMER0_COMPA_vect)
 {
-    set_freq(notes[(time/3)%32]);
+    set_freq(((time/(48*8) + 1)%2 + 0.5) * notes[(time/3)%32]);
     time++;
 }
 
